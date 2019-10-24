@@ -66,6 +66,8 @@ import java.util.GregorianCalendar;
 
 import mozilla.components.concept.storage.BookmarkNode;
 import mozilla.components.concept.storage.PageObservation;
+import mozilla.components.concept.storage.PageVisit;
+import mozilla.components.concept.storage.RedirectSource;
 import mozilla.components.concept.storage.VisitInfo;
 import mozilla.components.concept.storage.VisitType;
 
@@ -1408,21 +1410,21 @@ public class WindowWidget extends UIWidget implements SessionChangeListener,
 
         boolean isReload = lastVisitedURL != null && lastVisitedURL.equals(url);
 
-        VisitType visitType;
+        PageVisit pageVisit;
         if (isReload) {
-            visitType = VisitType.RELOAD;
+            pageVisit = new PageVisit(VisitType.RELOAD, RedirectSource.NOT_A_SOURCE);
         } else {
             if ((flags & VISIT_REDIRECT_SOURCE_PERMANENT) != 0) {
-                visitType = VisitType.REDIRECT_PERMANENT;
+                pageVisit = new PageVisit(VisitType.REDIRECT_PERMANENT, RedirectSource.PERMANENT);
             } else if ((flags & VISIT_REDIRECT_SOURCE) != 0) {
-                visitType = VisitType.REDIRECT_TEMPORARY;
+                pageVisit = new PageVisit(VisitType.REDIRECT_TEMPORARY, RedirectSource.TEMPORARY);
             } else {
-                visitType = VisitType.LINK;
+                pageVisit = new PageVisit(VisitType.LINK, RedirectSource.NOT_A_SOURCE);
             }
         }
 
         SessionStore.get().getHistoryStore().deleteVisitsFor(url).thenAcceptAsync(result -> {
-            SessionStore.get().getHistoryStore().recordVisit(url, visitType);
+            SessionStore.get().getHistoryStore().recordVisit(url, pageVisit);
         });
         return GeckoResult.fromValue(true);
     }
